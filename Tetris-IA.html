@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<title>Tetris</title>
+</head>
+
+<body>
+	<nav class="navbar navbar-expand navbar-dark bg-dark">
+		  <a class="navbar-brand" href="file:///C:/Users/tutur/Desktop/GitHub/Tetris/Tetris-IA.html">Tetris</a>
+		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbartoggler" aria-controls="navbartoggler" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		  </button>
+
+		  <div class="collapse navbar-collapse" id="navbartoggler">
+			<ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+			  <li class="nav-item active">
+				<a class="nav-link" href="#">Play <span class="sr-only">(current)</span></a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="#">Profil</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="#">Score</a>
+			  </li>
+			</ul>
+		  </div>
+	</nav>
+	
+	<section class="jumbotron">
+        <div class="container">
+			<div class="row">
+				<div class="col-8 text-center">
+					<div id="titleAffichage">
+						<h1> Tetris - AI <i>(random)</i></h1>
+					</div>
+					<div id="affichage">
+						<canvas id="canvas" width="480" height="500" class="pt-3">
+							<p>Désolé, votre navigateur ne supporte pas Canvas.</p>
+						</canvas>
+					</div>
+						<a href="#" onclick="efface()" class="btn btn-primary pt-1">Restart</a>
+					  </p>
+				</div>
+				<div class="shadow p-3 mb-5 bg-white rounded col-4">
+					<div id="scoreboard">
+						<table class="table">
+							<thead>
+								<tr>
+									<th scope="col">#</th>
+									<th scope="col">Score</th>
+								</tr>
+							</thead>
+							<tbody>
+	
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+        </div>
+      </section>
+	
+	<script>
+		
+		
+		var pieces = [0, 0, 0, 0, //carré //19 pièces
+					  0, 1, 1, 0,
+					  0, 1, 1, 0,
+					  0, 0, 0, 0,
+					  1, 1, 1, 1, //barre horizontale
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  1, 0, 0, 0, //barre verticale
+					  1, 0, 0, 0,
+					  1, 0, 0, 0,
+					  1, 0, 0, 0,
+					  0, 1, 0, 0, //T1
+					  1, 1, 1, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  1, 0, 0, 0,//T2
+					  1, 1, 0, 0,
+					  1, 0, 0, 0,
+					  0, 0, 0, 0,
+					  1, 1, 1, 0,//T3
+					  0, 1, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 1, 0, 0,//T4
+					  1, 1, 0, 0,
+					  0, 1, 0, 0,
+					  0, 0, 0, 0,
+					  1, 0, 0, 0, //-L1
+					  1, 1, 1, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 1, 0, 0, //-L2
+					  0, 1, 0, 0,
+					  1, 1, 0, 0,
+					  0, 0, 0, 0,
+					  1, 1, 1, 0, //-L3
+					  0, 0, 1, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  1, 1, 0, 0, //-L4
+					  1, 0, 0, 0,
+					  1, 0, 0, 0,
+					  0, 0, 0, 0,
+					  1, 1, 0, 0,//Z1
+					  0, 1, 1, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 1, 0, 0, //Z2
+					  1, 1, 0, 0,
+					  1, 0, 0, 0,
+					  0, 0, 0, 0,
+					  1, 0, 0, 0, //-Z1
+					  1, 1, 0, 0,
+					  0, 1, 0, 0,
+					  0, 0, 0, 0,
+					  0, 1, 1, 0, //-Z2
+					  1, 1, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  1, 0, 0, 0, //L1
+					  1, 0, 0, 0,
+					  1, 1, 0, 0,
+					  0, 0, 0, 0,
+					  1, 1, 0, 0, //L2
+					  0, 1, 0, 0,
+					  0, 1, 0, 0,
+					  0, 0, 0, 0,
+					  1, 1, 1, 0, //L3
+					  1, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 1, 0, //L4
+					  1, 1, 1, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0];
+		
+		
+		var canvas  = document.querySelector('#canvas');
+		var context = canvas.getContext('2d');
+		var Xcan = 500;
+		var Ycan = 480;
+		var taillepix=10;
+		var nbcases = Math.floor(Xcan/taillepix);
+		var tableau = [];
+		var pieceN =[];
+		var nbpieces = tableau.length/3;
+		var etatJeu = true;
+		var score = 0;
+		var tabScore = [];
+		
+		sol();
+		init();
+		nouvellePiece();
+		traceTable();
+		suivant();
+		
+		function efface() {
+			nbcases = Math.floor(Xcan/taillepix);
+			etatJeu = true;
+			score = 0;
+			tableau = [];
+			pieceN =[];
+			sol();
+			init();
+			nouvellePiece();
+			traceTable();
+			suivant();
+		}
+			
+		function suivant() {
+			if(etatJeu === true) {
+				var ld = libreDessous();
+				//alert(ld);
+				if (ld) {
+					pieceN[1]=pieceN[1]+1;
+					var deplacement = Math.floor(Math.random()*2)*2-1;
+					if (libreCote(deplacement)) {
+						pieceN[0]= pieceN[0] + deplacement;
+						}
+				} else {
+					tableau.push(pieceN[0]);
+					tableau.push(pieceN[1]);
+					tableau.push(pieceN[2]);
+					if(!pieceN[1] < 1) {
+						score += 10;
+						nouvellePiece();
+					}
+					else {
+						tabScore.push(score);
+						scoreboardUpdate();
+						etatJeu = false;
+					}
+				}
+			}
+			traceTable();
+			if(etatJeu === true)
+				setTimeout(suivant,20); // High framerate for bot
+		}
+		
+		function nouvellePiece() {
+			pieceN=[];
+			pieceN.push(Math.floor(nbcases/2));
+			pieceN.push(0);
+			pieceN.push(Math.floor(Math.random()*19));
+		}
+		
+		
+		function sol() {
+			var nbbarres = Math.floor(nbcases);
+			console.log(nbbarres);
+			for (var i = 0 ; i < nbbarres ; i++) {
+				tableau.push(i);
+				tableau.push(nbcases-1);
+				tableau.push(1);					
+			}
+		}
+		
+		function init() {
+				context.clearRect(0, 0, canvas.width, canvas.height);
+				context.beginPath();		
+				context.fillStyle = "rgba(0, 0, 0, 255)";
+				context.rect ( 0 , 0 , canvas.width, canvas.height );
+				context.fill();
+				context.fillStyle = "rgba(100, 255, 100, 255)";
+			}
+		
+		function traceTable() {
+			init()
+			nbpieces = tableau.length/3;
+			for (var i=0 ; i<nbpieces ; i++ ) {
+				tracePiece(tableau[3*i],tableau[3*i+1],tableau[3*i+2]);
+			}
+			context.fillStyle = "rgba(255, 255, 0, 255)";
+			tracePiece(pieceN[0],pieceN[1],pieceN[2])
+		}
+		
+		function tracePiece(x,y,nopiece) {
+			for (var i=0 ; i<16 ; i++) {
+				if (pieces[nopiece*16+i]==1) {
+					context.fillRect ( taillepix*(x+(i%4)) , taillepix*(y+Math.floor(i/4)) , taillepix, taillepix );
+					}
+			}
+
+		}
+		
+		function caseLibre(x,y) {
+			result=true;
+			for (var i=0 ; i < nbpieces ; i++ ) {
+				for (var j=0 ; j<16 ; j++) {
+					if ((tableau[3*i]+j%4==x)&&(tableau[3*i+1]+Math.floor(j/4)==y)&&(pieces[tableau[3*i+2]*16+j]==1)) {
+						result = false;
+					}
+				}
+			}
+			return result;
+		}
+	
+		function libreDessous() {
+			for (var i=0 ; i<16 ; i++) {
+				if (pieces[pieceN[2]*16+i]==1) {
+					if (!(caseLibre(pieceN[0]+i%4,pieceN[1]+Math.floor(i/4)+1))) {
+					 //alert(i);
+					 return false;
+					}
+				}
+			}
+			return true;
+		}
+		
+		function libreCote(saucisson) {
+			for (var i=0 ; i<16 ; i++) {
+				if (pieces[pieceN[2]*16+i]==1) {
+					if (!(caseLibre(pieceN[0]+i%4+saucisson,pieceN[1]+Math.floor(i/4)))) {
+					 //alert(i);
+					 return false;
+					}
+				}
+			}
+			return true;
+		}
+		
+		function scoreboardUpdate() {
+			tabScore.sort().reverse();
+			var strgTemp = '<table class="table"<thead> <tr> <th scope="col">#</th> <th scope="col">Score</th></tr></thead><tbody>';
+			for (var i = 0; i < tabScore.length;i++){
+				if(tabScore[i] != 0)
+					strgTemp += '<tr> <th scope="row">' + (i + 1) + '</th><td>' + tabScore[i] + ' points</td></tr>'
+			}
+			strgTemp += '</tbody></table>';
+			document.querySelector("#scoreboard").innerHTML = strgTemp;
+		}
+		
+	</script>	
+  
+</body>
+</html>
