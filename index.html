@@ -2,14 +2,15 @@
 <html lang="fr">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	 <script src="./data/score.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="./data/score.js"></script>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 	<title>Tetris</title>
 </head>
 
 <body>
 	<nav class="navbar navbar-expand navbar-dark bg-dark">
-		  <a class="navbar-brand" href="file:///C:/Users/tutur/Desktop/GitHub/Tetris/Tetris-IA.html">Tetris</a>
+		  <a class="navbar-brand" href="index.html">Tetris</a>
 		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbartoggler" aria-controls="navbartoggler" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		  </button>
@@ -23,7 +24,7 @@
 				<a class="nav-link" href="#">Profil</a>
 			  </li>
 			  <li class="nav-item">
-				<a class="nav-link" href="#">Score</a>
+				<a class="nav-link" href="score.html">Score</a>
 			  </li>
 			</ul>
 		  </div>
@@ -33,19 +34,33 @@
         <div class="container">
 			<div class="row">
 				<div class="col-8 text-center">
-					<div id="titleAffichage">
-						<h1> Solo Player </h1>
+					<div id="titleAffichage" class="btn-secondary btn">
+						<h1> Solo </h1>
 					</div>
 					<div id="affichage">
 						<canvas id="canvas" width="480" height="500" class="pt-3">
 							<p>Désolé, votre navigateur ne supporte pas Canvas.</p>
 						</canvas>
 					</div>
-						<a href="#" onclick="efface()" class="btn btn-primary pt-1">Restart</a>
+						<a href="#" onclick="efface()" class="btn btn-secondary pt-1">Play Again</a>
 					  
 				</div>
 				<div class="shadow p-3 mb-5 bg-white rounded col-4">
-					<div id="scoreboard">
+					<div id="globalScoreboard">
+						<table class="table">
+							<thead>
+								<tr>
+									<th scope="col">#</th>
+									<th scope="col">Global Scoreboard</th>
+								</tr>
+							</thead>
+							<tbody>
+	
+							</tbody>
+						</table>
+					</div>
+					<br>
+					<div id="sessionScoreboard">
 						<table class="table">
 							<thead>
 								<tr>
@@ -55,19 +70,6 @@
 							</thead>
 							<tbody>
 	
-							</tbody>
-						</table>
-					</div>
-					<br>
-					<div id="currentscore" class="text-center">
-						<table class="table">
-							<thead>
-								<tr>
-									<th scope="col">Current Score</th>
-								</tr>
-							</thead>
-							<tbody>
-								
 							</tbody>
 						</table>
 					</div>
@@ -170,7 +172,9 @@
 		var etatJeu = true;
 		var score = 0;
 		var tabScore = [];
+		var scoreGlobal = [];
 		
+		scoreboardUpdate("#globalScoreboard", "Global Scoreboard", scoreGlobal);
 		scoreUpdate();
 		sol();
 		init();
@@ -182,7 +186,7 @@
 			nbcases = Math.floor(Xcan/taillepix);
 			etatJeu = true;
 			score = 0;
-			clearInterval(gameLoop);
+			//clearInterval(gameLoop);
 			gameLoop = null;
 			tableau = [];
 			pieceN = [];
@@ -215,7 +219,11 @@
 					}
 					else {
 						tabScore.push(score);
-						scoreboardUpdate();
+						if(verifScoreGlobal(score)) {
+							scoreboardUpdate("#globalScoreboard", "Global Scoreboard", scoreGlobal);
+							sauvegardeScoreGlobal();
+						}
+						scoreboardUpdate("#sessionScoreboard", "Session Scoreboard", tabScore);
 						etatJeu = false;
 					}
 				}
@@ -307,21 +315,45 @@
 			return true;
 		}
 		
-		function scoreboardUpdate() {
-			tabScore.sort().reverse();
-			var strgTemp = '<table class="table"<thead> <tr> <th scope="col">#</th> <th scope="col">Session Scoreboard</th></tr></thead><tbody>';
-			for (var i = 0; i < tabScore.length; i++){
-				if(tabScore[i] != 0)
-					strgTemp += '<tr> <th scope="row">' + (i + 1) + '</th><td>' + tabScore[i] + ' points</td></tr>'
+		function triNombres(a, b) {
+			return a - b;
+		}
+		
+		function scoreboardUpdate(query, nom, tabTemp) {
+			tabTemp = tabTemp.sort(triNombres).reverse();
+			var strgTemp = '<table class="table"<thead> <tr> <th scope="col">#</th> <th scope="col">' + nom + '</th></tr></thead><tbody>';
+			
+			if(tabTemp.length < 5)
+				var compteur = tabTemp.length;
+			else
+				var compteur = 4;
+				
+			for (var i = 0; i < compteur; i++){
+				if(tabTemp[i] != 0)
+						strgTemp += '<tr> <th scope="row">' + (i + 1) + '</th><td>' + tabTemp[i] + ' points</td></tr>';
 			}
 			strgTemp += '</tbody></table>';
-			document.querySelector("#scoreboard").innerHTML = strgTemp;
+			document.querySelector(query).innerHTML = strgTemp;
+		}
+		
+		function verifScoreGlobal(saucisson) {
+			for(var i = 0; i < scoreGlobal.length; i++) {
+				if(scoreGlobal[i] < saucisson) {
+					scoreGlobal[i] = saucisson;
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		function sauvegardeScoreGlobal() {
+			/*$.post('./data/updateScore.php', function(response){
+				console.log(response);
+			});*/
 		}
 		
 		function scoreUpdate() {
-			var strgTemp = '<table class="table"<thead> <tr> <th scope="col">Current Score</th></tr></thead><tbody>' + '<tr></th><td>' + score + ' points </td>';
-			strgTemp += '</tbody></table>';
-			document.querySelector("#currentscore").innerHTML = strgTemp;
+			document.querySelector("#titleAffichage").innerHTML = '<h1> Solo - ' + score + ' points</h1>';
 		}
 				
 	</script>	

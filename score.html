@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	 <script src="./data/score.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<title>Tetris</title>
+</head>
+
+<body>
+	<nav class="navbar navbar-expand navbar-dark bg-dark">
+		  <a class="navbar-brand" href="index.html">Tetris</a>
+		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbartoggler" aria-controls="navbartoggler" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		  </button>
+
+		  <div class="collapse navbar-collapse" id="navbartoggler">
+			<ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+			  <li class="nav-item active">
+				<a class="nav-link" href="#">Play</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="#">Profil</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="#">Score <span class="sr-only">(current)</span></a>
+			  </li>
+			</ul>
+		  </div>
+	</nav>
+	
+	<section class="jumbotron">
+        <div class="container">
+			<div class="row">
+				<div class="shadow p-3 mb-5 bg-white rounded col-5">
+					<div id="sessionScoreboard">
+						<table class="table">
+							<thead>
+								<tr>
+									<th scope="col">#</th>
+									<th scope="col">Session Scoreboard</th>
+								</tr>
+							</thead>
+							<tbody>
+	
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="col-2"> </div>
+				<div class="shadow p-3 mb-5 bg-white rounded col-5">
+					<div id="globalScoreboard">
+						<table class="table">
+							<thead>
+								<tr>
+									<th scope="col">#</th>
+									<th scope="col">Global Scoreboard</th>
+								</tr>
+							</thead>
+							<tbody>
+	
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+        </div>
+    </section>  
+</body>
+</html>
