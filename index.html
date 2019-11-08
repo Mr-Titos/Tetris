@@ -3,7 +3,6 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-	<script src="./data/score.js"></script>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 	<title>Tetris</title>
 </head>
@@ -172,9 +171,15 @@
 		var etatJeu = true;
 		var score = 0;
 		var tabScore = [];
-		var scoreGlobal = [];
+		var tabScoreGlobal;
 		
-		scoreboardUpdate("#globalScoreboard", "Global Scoreboard", scoreGlobal);
+		try {
+			getScoreGlobal().then(function(res) {
+				scoreboardUpdate("#globalScoreboard", "Global Scoreboard", res, true);
+				tabScoreGlobal = res;
+			});
+		} catch(err) {console.log(err);}
+		
 		scoreUpdate();
 		sol();
 		init();
@@ -219,11 +224,11 @@
 					}
 					else {
 						tabScore.push(score);
-						if(verifScoreGlobal(score)) {
-							scoreboardUpdate("#globalScoreboard", "Global Scoreboard", scoreGlobal);
+						if(checkScoreGlobal(score)) {
+							scoreboardUpdate("#globalScoreboard", "Global Scoreboard", tabScoreGlobal, true);
 							sauvegardeScoreGlobal();
 						}
-						scoreboardUpdate("#sessionScoreboard", "Session Scoreboard", tabScore);
+						scoreboardUpdate("#sessionScoreboard", "Session Scoreboard", tabScore, false);
 						etatJeu = false;
 					}
 				}
@@ -319,8 +324,20 @@
 			return a - b;
 		}
 		
-		function scoreboardUpdate(query, nom, tabTemp) {
-			tabTemp = tabTemp.sort(triNombres).reverse();
+		function triNombresJSON(a, b) {
+			//console.log("a : " + a.score);
+			//console.log("b : " + b.score);
+			return a.score - b.score;
+		}
+		
+		function scoreboardUpdate(query, nom, tabTemp, isJSON) {
+			if(!isJSON)
+				tabTemp = tabTemp.sort(triNombres).reverse();
+			else {
+				tabTemp = tabTemp.scoreTab.sort(triNombresJSON).reverse();
+				//console.log(tabTemp[0].score);
+			 }
+				
 			var strgTemp = '<table class="table"<thead> <tr> <th scope="col">#</th> <th scope="col">' + nom + '</th></tr></thead><tbody>';
 			
 			if(tabTemp.length < 5)
@@ -329,17 +346,22 @@
 				var compteur = 4;
 				
 			for (var i = 0; i < compteur; i++){
-				if(tabTemp[i] != 0)
-						strgTemp += '<tr> <th scope="row">' + (i + 1) + '</th><td>' + tabTemp[i] + ' points</td></tr>';
+				if(tabTemp[i] != 0 && !isJSON)
+					strgTemp += '<tr> <th scope="row">' + (i + 1) + '</th><td>' + tabTemp[i] + ' points</td></tr>';
+				if(tabTemp[i] != 0 && isJSON) {
+					strgTemp += '<tr> <th scope="row">' + (i + 1) + '</th><td>' + tabTemp[i].score + ' points</td></tr>';
+					//console.log(tabTemp[i].score);
+				}
 			}
 			strgTemp += '</tbody></table>';
 			document.querySelector(query).innerHTML = strgTemp;
 		}
 		
-		function verifScoreGlobal(saucisson) {
-			for(var i = 0; i < scoreGlobal.length; i++) {
-				if(scoreGlobal[i] < saucisson) {
-					scoreGlobal[i] = saucisson;
+		function checkScoreGlobal(saucisson) {
+			//console.log(tabScoreGlobal);
+			for(var i = 0; i < tabScoreGlobal.scoreTab.length; i++) {
+				if(tabScoreGlobal.scoreTab[i].score < saucisson) {
+					tabScoreGlobal.scoreTab[i].score = saucisson;
 					return true;
 				}
 			}
@@ -347,9 +369,34 @@
 		}
 		
 		function sauvegardeScoreGlobal() {
-			/*$.post('./data/updateScore.php', function(response){
-				console.log(response);
-			});*/
+			var request = new XMLHttpRequest();
+				request.open('POST', "http://localhost:4242", true);
+				request.setRequestHeader("method", "save");
+				request.setRequestHeader("file", "score.json");
+				
+				request.send(JSON.stringify(tabScoreGlobal));
+				
+				request.onload = function () {
+					console.log(JSON.stringify(tabScoreGlobal));
+				};
+		}
+		
+		function getScoreGlobal() {
+			return new Promise(function (resolve, reject) {
+				var request = new XMLHttpRequest();
+				request.open('GET', "http://localhost:4242", true);
+				request.setRequestHeader("method", "all");
+				request.setRequestHeader("file", "score.json");
+				request.responseType = 'json';
+				
+				request.send(null);
+				
+				request.onload = function () {
+					//console.log(request.response);
+					resolve(request.response); // the global score array
+				};
+			
+			});
 		}
 		
 		function scoreUpdate() {
