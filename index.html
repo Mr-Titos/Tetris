@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script type="text/javascript" src="token.js"></script>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 	<title>Tetris</title>
 </head>
@@ -181,7 +181,7 @@
 		} catch(err) {console.log(err);}
 		
 		scoreUpdate();
-		sol();
+		limit();
 		init();
 		nouvellePiece();
 		traceTable();
@@ -196,7 +196,7 @@
 			tableau = [];
 			pieceN = [];
 			scoreUpdate();
-			sol();
+			limit();
 			init();
 			nouvellePiece();
 			traceTable();
@@ -209,6 +209,8 @@
 				//alert(ld);
 				if (ld) {
 					pieceN[1]=pieceN[1]+1;
+					
+					//Call move function 
 					var deplacement = Math.floor(Math.random()*2)*2-1;
 					if (libreCote(deplacement)) {
 						pieceN[0]= pieceN[0] + deplacement;
@@ -217,6 +219,7 @@
 					tableau.push(pieceN[0]); // horizontaly
 					tableau.push(pieceN[1]); // vertically
 					tableau.push(pieceN[2]); // piece type
+					//Check ligne here
 					if(!pieceN[1] < 1) {
 						score += 10;
 						nouvellePiece();
@@ -246,7 +249,7 @@
 		}
 		
 		
-		function sol() {
+		function limit() {
 			var nbbarres = Math.floor(nbcases); // verticaly cases
 			for (var i = 0 ; i < nbbarres ; i++) {
 				tableau.push(i);
@@ -325,8 +328,6 @@
 		}
 		
 		function triNombresJSON(a, b) {
-			//console.log("a : " + a.score);
-			//console.log("b : " + b.score);
 			return a.score - b.score;
 		}
 		
@@ -373,12 +374,9 @@
 				request.open('POST', "http://localhost:4242", true);
 				request.setRequestHeader("method", "save");
 				request.setRequestHeader("file", "score.json");
+				request.setRequestHeader("token", token);
 				
 				request.send(JSON.stringify(tabScoreGlobal));
-				
-				request.onload = function () {
-					console.log(JSON.stringify(tabScoreGlobal));
-				};
 		}
 		
 		function getScoreGlobal() {
@@ -395,7 +393,6 @@
 					//console.log(request.response);
 					resolve(request.response); // the global score array
 				};
-			
 			});
 		}
 		

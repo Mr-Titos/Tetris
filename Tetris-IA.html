@@ -2,14 +2,13 @@
 <html lang="fr">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	 <script src="./data/score.js"></script>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 	<title>Tetris</title>
 </head>
 
 <body>
 	<nav class="navbar navbar-expand navbar-dark bg-dark">
-		  <a class="navbar-brand" href="file:///C:/Users/tutur/Desktop/GitHub/Tetris/Tetris-IA.html">Tetris</a>
+		  <a class="navbar-brand" href="index.html">Tetris</a>
 		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbartoggler" aria-controls="navbartoggler" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		  </button>
@@ -23,7 +22,7 @@
 				<a class="nav-link" href="#">Profil</a>
 			  </li>
 			  <li class="nav-item">
-				<a class="nav-link" href="#">Score</a>
+				<a class="nav-link" href="score.html">Score</a>
 			  </li>
 			</ul>
 		  </div>
@@ -33,19 +32,33 @@
         <div class="container">
 			<div class="row">
 				<div class="col-8 text-center">
-					<div id="titleAffichage">
-						<h1> Solo Player </h1>
+					<div id="titleAffichage" class="btn-secondary btn">
+						<h1> Solo </h1>
 					</div>
 					<div id="affichage">
 						<canvas id="canvas" width="480" height="500" class="pt-3">
 							<p>Désolé, votre navigateur ne supporte pas Canvas.</p>
 						</canvas>
 					</div>
-						<a href="#" onclick="efface()" class="btn btn-primary pt-1">Restart</a>
+						<a href="#" onclick="efface()" class="btn btn-secondary pt-1">Play Again</a>
 					  
 				</div>
 				<div class="shadow p-3 mb-5 bg-white rounded col-4">
-					<div id="scoreboard">
+					<div id="globalScoreboard">
+						<table class="table">
+							<thead>
+								<tr>
+									<th scope="col">#</th>
+									<th scope="col">Global Scoreboard</th>
+								</tr>
+							</thead>
+							<tbody>
+	
+							</tbody>
+						</table>
+					</div>
+					<br>
+					<div id="sessionScoreboard">
 						<table class="table">
 							<thead>
 								<tr>
@@ -55,19 +68,6 @@
 							</thead>
 							<tbody>
 	
-							</tbody>
-						</table>
-					</div>
-					<br>
-					<div id="currentscore" class="text-center">
-						<table class="table">
-							<thead>
-								<tr>
-									<th scope="col">Current Score</th>
-								</tr>
-							</thead>
-							<tbody>
-								
 							</tbody>
 						</table>
 					</div>
@@ -170,6 +170,14 @@
 		var etatJeu = true;
 		var score = 0;
 		var tabScore = [];
+		var tabScoreGlobal;
+		
+		try {
+			getScoreGlobal().then(function(res) {
+				scoreboardUpdate("#globalScoreboard", "Global Scoreboard", res, true);
+				tabScoreGlobal = res;
+			});
+		} catch(err) {console.log(err);}
 		
 		scoreUpdate();
 		sol();
@@ -200,6 +208,8 @@
 				//alert(ld);
 				if (ld) {
 					pieceN[1]=pieceN[1]+1;
+					
+					//Call move function 
 					var deplacement = Math.floor(Math.random()*2)*2-1;
 					if (libreCote(deplacement)) {
 						pieceN[0]= pieceN[0] + deplacement;
@@ -208,6 +218,7 @@
 					tableau.push(pieceN[0]); // horizontaly
 					tableau.push(pieceN[1]); // vertically
 					tableau.push(pieceN[2]); // piece type
+					//Check ligne here
 					if(!pieceN[1] < 1) {
 						score += 10;
 						nouvellePiece();
@@ -215,7 +226,11 @@
 					}
 					else {
 						tabScore.push(score);
-						scoreboardUpdate();
+						if(checkScoreGlobal(score)) {
+							scoreboardUpdate("#globalScoreboard", "Global Scoreboard", tabScoreGlobal, true);
+							sauvegardeScoreGlobal();
+						}
+						scoreboardUpdate("#sessionScoreboard", "Session Scoreboard", tabScore, false);
 						etatJeu = false;
 					}
 				}
@@ -307,21 +322,80 @@
 			return true;
 		}
 		
-		function scoreboardUpdate() {
-			tabScore.sort().reverse();
-			var strgTemp = '<table class="table"<thead> <tr> <th scope="col">#</th> <th scope="col">Session Scoreboard</th></tr></thead><tbody>';
-			for (var i = 0; i < tabScore.length; i++){
-				if(tabScore[i] != 0)
-					strgTemp += '<tr> <th scope="row">' + (i + 1) + '</th><td>' + tabScore[i] + ' points</td></tr>'
+		function triNombres(a, b) {
+			return a - b;
+		}
+		
+		function triNombresJSON(a, b) {
+			return a.score - b.score;
+		}
+		
+		function scoreboardUpdate(query, nom, tabTemp, isJSON) {
+			if(!isJSON)
+				tabTemp = tabTemp.sort(triNombres).reverse();
+			else {
+				tabTemp = tabTemp.scoreTab.sort(triNombresJSON).reverse();
+				//console.log(tabTemp[0].score);
+			 }
+				
+			var strgTemp = '<table class="table"<thead> <tr> <th scope="col">#</th> <th scope="col">' + nom + '</th></tr></thead><tbody>';
+			
+			if(tabTemp.length < 5)
+				var compteur = tabTemp.length;
+			else
+				var compteur = 4;
+				
+			for (var i = 0; i < compteur; i++){
+				if(tabTemp[i] != 0 && !isJSON)
+					strgTemp += '<tr> <th scope="row">' + (i + 1) + '</th><td>' + tabTemp[i] + ' points</td></tr>';
+				if(tabTemp[i] != 0 && isJSON) {
+					strgTemp += '<tr> <th scope="row">' + (i + 1) + '</th><td>' + tabTemp[i].score + ' points</td></tr>';
+					//console.log(tabTemp[i].score);
+				}
 			}
 			strgTemp += '</tbody></table>';
-			document.querySelector("#scoreboard").innerHTML = strgTemp;
+			document.querySelector(query).innerHTML = strgTemp;
+		}
+		
+		function checkScoreGlobal(saucisson) {
+			//console.log(tabScoreGlobal);
+			for(var i = 0; i < tabScoreGlobal.scoreTab.length; i++) {
+				if(tabScoreGlobal.scoreTab[i].score < saucisson) {
+					tabScoreGlobal.scoreTab[i].score = saucisson;
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		function sauvegardeScoreGlobal() {
+			var request = new XMLHttpRequest();
+				request.open('POST', "http://localhost:4242", true);
+				request.setRequestHeader("method", "save");
+				request.setRequestHeader("file", "score.json");
+				
+				request.send(JSON.stringify(tabScoreGlobal));
+		}
+		
+		function getScoreGlobal() {
+			return new Promise(function (resolve, reject) {
+				var request = new XMLHttpRequest();
+				request.open('GET', "http://localhost:4242", true);
+				request.setRequestHeader("method", "all");
+				request.setRequestHeader("file", "score.json");
+				request.responseType = 'json';
+				
+				request.send(null);
+				
+				request.onload = function () {
+					//console.log(request.response);
+					resolve(request.response); // the global score array
+				};
+			});
 		}
 		
 		function scoreUpdate() {
-			var strgTemp = '<table class="table"<thead> <tr> <th scope="col">Current Score</th></tr></thead><tbody>' + '<tr></th><td>' + score + ' points </td>';
-			strgTemp += '</tbody></table>';
-			document.querySelector("#currentscore").innerHTML = strgTemp;
+			document.querySelector("#titleAffichage").innerHTML = '<h1> Solo - ' + score + ' points</h1>';
 		}
 				
 	</script>	
