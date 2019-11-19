@@ -162,86 +162,86 @@
 		var context = canvas.getContext('2d');
 		var Xcan = 500;
 		var Ycan = 480;
-		var taillepix = 10; // define size of pieces in the canvas
-		var nbcases = Math.floor(Xcan/taillepix);
-		var tableau = [];
+		var sizePix = 10; // define size of pieces in the canvas
+		var nbcases = Math.floor(Xcan/sizePix);
+		var array = [];
 		var gameLoop = null;
 		var pieceN = [];
-		var nbpieces = tableau.length / 3;
-		var etatJeu = true;
+		var nbpieces = array.length / 3;
+		var gameState = true;
 		var score = 0;
-		var tabScore = [];
-		var tabScoreGlobal;
+		var arrScore = [];
+		var arrScoreGlobal;
 		
 		try {
 			getScoreGlobal().then(function(res) {
 				scoreboardUpdate("#globalScoreboard", "Global Scoreboard", res, true);
-				tabScoreGlobal = res;
+				arrScoreGlobal = res;
 			});
 		} catch(err) {console.log(err);}
 		
 		scoreUpdate();
 		limit();
 		init();
-		nouvellePiece();
-		traceTable();
-		suivant();
+		newPiece();
+		drawArray();
+		next();
 		
 		function efface() {
-			nbcases = Math.floor(Xcan/taillepix);
-			etatJeu = true;
+			nbcases = Math.floor(Xcan/sizePix);
+			gameState = true;
 			score = 0;
 			//clearInterval(gameLoop);
 			gameLoop = null;
-			tableau = [];
+			array = [];
 			pieceN = [];
 			scoreUpdate();
 			limit();
 			init();
-			nouvellePiece();
-			traceTable();
-			suivant();
+			newPiece();
+			drawArray();
+			next();
 		}
 			
-		function suivant() {
-			if(etatJeu === true) {
-				var ld = libreDessous();
+		function next() {
+			if(gameState === true) {
+				var ld = emptyBehind();
 				//alert(ld);
 				if (ld) {
 					pieceN[1]=pieceN[1]+1;
 					
 					//Call move function 
 					var deplacement = Math.floor(Math.random()*2)*2-1;
-					if (libreCote(deplacement)) {
+					if (emptySide(deplacement)) {
 						pieceN[0]= pieceN[0] + deplacement;
 						}
 				} else {
-					tableau.push(pieceN[0]); // horizontaly
-					tableau.push(pieceN[1]); // vertically
-					tableau.push(pieceN[2]); // piece type
+					array.push(pieceN[0]); // horizontaly
+					array.push(pieceN[1]); // vertically
+					array.push(pieceN[2]); // piece type
 					//Check ligne here
 					if(!pieceN[1] < 1) {
 						score += 10;
-						nouvellePiece();
+						newPiece();
 						scoreUpdate();
 					}
 					else {
-						tabScore.push(score);
+						arrScore.push(score);
 						if(checkScoreGlobal(score)) {
-							scoreboardUpdate("#globalScoreboard", "Global Scoreboard", tabScoreGlobal, true);
-							sauvegardeScoreGlobal();
+							scoreboardUpdate("#globalScoreboard", "Global Scoreboard", arrScoreGlobal, true);
+							saveScoreGlobal();
 						}
-						scoreboardUpdate("#sessionScoreboard", "Session Scoreboard", tabScore, false);
-						etatJeu = false;
+						scoreboardUpdate("#sessionScoreboard", "Session Scoreboard", arrScore, false);
+						gameState = false;
 					}
 				}
 			}
-			traceTable();
-			if(etatJeu === true && gameLoop === null)
-				gameLoop = setInterval(suivant,20); // High framerate for bot
+			drawArray();
+			if(gameState === true && gameLoop === null)
+				gameLoop = setInterval(next,20); // High framerate for bot
 		}
 		
-		function nouvellePiece() {
+		function newPiece() {
 			pieceN=[];
 			pieceN.push(Math.floor(nbcases/2));
 			pieceN.push(0);
@@ -252,9 +252,9 @@
 		function limit() {
 			var nbbarres = Math.floor(nbcases); // verticaly cases
 			for (var i = 0 ; i < nbbarres ; i++) {
-				tableau.push(i);
-				tableau.push(nbcases-1);
-				tableau.push(1);					
+				array.push(i);
+				array.push(nbcases-1);
+				array.push(1);					
 			}
 		}
 		
@@ -267,31 +267,31 @@
 				context.fillStyle = "rgba(100, 255, 100, 255)";
 			}
 		
-		function traceTable() {
+		function drawArray() {
 			init();
 			// Scan all precedents pieces and replace them
-			nbpieces = tableau.length/3;
+			nbpieces = array.length/3;
 			for (var i = 0 ; i <  nbpieces ; i++ ) {
-				tracePiece(tableau[3*i],tableau[3*i+1],tableau[3*i+2]);
+				drawPiece(array[3*i],array[3*i+1],array[3*i+2]);
 			}
 			context.fillStyle = "rgba(255, 255, 0, 255)";
 			// Place the new Piece
-			tracePiece(pieceN[0],pieceN[1],pieceN[2]);
+			drawPiece(pieceN[0],pieceN[1],pieceN[2]);
 		}
 		
-		function tracePiece(x, y, nopiece) {
+		function drawPiece(x, y, nopiece) {
 			for (var i = 0; i < 16; i++) {
 				if (pieces[nopiece*16 + i] == 1) {
-					context.fillRect ( taillepix*(x+(i%4)) , taillepix*(y+Math.floor(i/4)) , taillepix, taillepix );
+					context.fillRect ( sizePix*(x+(i%4)) , sizePix*(y+Math.floor(i/4)) , sizePix, sizePix );
 				}
 			}
 		}
 		
-		function caseLibre(x, y) {
+		function emptyCase(x, y) {
 			result=true;
 			for (var i = 0 ; i < nbpieces ; i++) {
 				for (var j = 0 ; j < 16 ; j++) {
-					if ((tableau[3*i] + j%4 == x)&&(tableau[3*i+1] + Math.floor(j/4) == y)&&(pieces[tableau[3*i+2]*16 + j] == 1)) {
+					if ((array[3*i] + j%4 == x)&&(array[3*i+1] + Math.floor(j/4) == y)&&(pieces[array[3*i+2]*16 + j] == 1)) {
 						result = false;
 					}
 				}
@@ -299,10 +299,10 @@
 			return result;
 		}
 	
-		function libreDessous() {
+		function emptyBehind() {
 			for (var i = 0 ; i < 16 ; i++) {
 				if (pieces[pieceN[2]*16 + i] == 1) {
-					if (!(caseLibre(pieceN[0] + i%4, pieceN[1] + Math.floor(i/4)+1))) {
+					if (!(emptyCase(pieceN[0] + i%4, pieceN[1] + Math.floor(i/4)+1))) {
 					 //alert(i);
 					 return false;
 					}
@@ -311,10 +311,10 @@
 			return true;
 		}
 		
-		function libreCote(saucisson) {
+		function emptySide(saucisson) {
 			for (var i = 0 ; i < 16 ; i++) {
 				if (pieces[pieceN[2]*16 + i] == 1) {
-					if (!(caseLibre(pieceN[0] + i%4 + saucisson,pieceN[1] + Math.floor(i/4)))) {
+					if (!(emptyCase(pieceN[0] + i%4 + saucisson,pieceN[1] + Math.floor(i/4)))) {
 					 //alert(i);
 					 return false;
 					}
@@ -323,19 +323,19 @@
 			return true;
 		}
 		
-		function triNombres(a, b) {
+		function sort(a, b) {
 			return a - b;
 		}
 		
-		function triNombresJSON(a, b) {
+		function sortJSON(a, b) {
 			return a.score - b.score;
 		}
 		
 		function scoreboardUpdate(query, nom, tabTemp, isJSON) {
 			if(!isJSON)
-				tabTemp = tabTemp.sort(triNombres).reverse();
+				tabTemp = tabTemp.sort(sort).reverse();
 			else {
-				tabTemp = tabTemp.scoreTab.sort(triNombresJSON).reverse();
+				tabTemp = tabTemp.scoreTab.sort(sortJSON).reverse();
 				//console.log(tabTemp[0].score);
 			 }
 				
@@ -359,24 +359,24 @@
 		}
 		
 		function checkScoreGlobal(saucisson) {
-			//console.log(tabScoreGlobal);
-			for(var i = 0; i < tabScoreGlobal.scoreTab.length; i++) {
-				if(tabScoreGlobal.scoreTab[i].score < saucisson) {
-					tabScoreGlobal.scoreTab[i].score = saucisson;
+			//console.log(arrScoreGlobal);
+			for(var i = 0; i < arrScoreGlobal.scoreTab.length; i++) {
+				if(arrScoreGlobal.scoreTab[i].score < saucisson) {
+					arrScoreGlobal.scoreTab[i].score = saucisson;
 					return true;
 				}
 			}
 			return false;
 		}
 		
-		function sauvegardeScoreGlobal() {
+		function saveScoreGlobal() {
 			var request = new XMLHttpRequest();
 				request.open('POST', "http://localhost:4242", true);
 				request.setRequestHeader("method", "save");
 				request.setRequestHeader("file", "score.json");
-				request.setRequestHeader("token", token);
+				request.setRequestHeader("token", token);// token is a var declared on an another script
 				
-				request.send(JSON.stringify(tabScoreGlobal));
+				request.send(JSON.stringify(arrScoreGlobal));
 		}
 		
 		function getScoreGlobal() {
