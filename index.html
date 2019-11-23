@@ -37,7 +37,7 @@
 						<h1> Solo </h1>
 					</div>
 					<div id="affichage">
-						<canvas id="canvas" width="480" height="500" class="pt-3">
+						<canvas id="canvas" width="485" height="500" class="pt-3">
 							<p>Désolé, votre navigateur ne supporte pas Canvas.</p>
 						</canvas>
 					</div>
@@ -169,28 +169,47 @@
 		var pieceN = [];
 		var nbpieces = array.length / 3;
 		var gameState = true;
+		var framerate = 150;
+		var framerateInit = 150;
+		var fasterTime = false;
 		var score = 0;
 		var arrScore = [];
 		var arrScoreGlobal;
 		var mvtUsr = 0;
+		var incremMvt = 0;
 		
-		
-		document.addEventListener('keydown', movementUser);
-		function movementUser(evt) {			
-			switch(evt.code) {
+		document.addEventListener('keydown', key => { 
+			switch(key.code) {
 				case 'ArrowLeft':
 					mvtUsr = -1;
 					break;
 				case 'ArrowRight':
 					mvtUsr = 1;
 					break;
+				case 'Space':
+					if(!fasterTime) {
+						clearInterval(gameLoop);
+						gameLoop = setInterval(next, framerate / 2.5);
+						framerate = framerate / 2.5;
+						fasterTime = true;
+					} else {
+						clearInterval(gameLoop);
+						gameLoop = setInterval(next, framerate * 2.5);
+						framerate = framerate * 2.5;
+						fasterTime = false;
+					}
+					break;
 				default:
 					mvtUsr = 0;
 					break;
 			}
-		}
-		document.addEventListener('keyup', resetMovement);
-		function resetMovement(evt) {
+		});
+		
+		document.addEventListener('keyup', key => { 
+			setTimeout(resetMovement, framerate/4);
+		});
+		
+		function resetMovement() {
 			mvtUsr = 0;
 		}
 		
@@ -212,7 +231,7 @@
 			nbcases = Math.floor(Xcan/sizePix);
 			gameState = true;
 			score = 0;
-			//clearInterval(gameLoop);
+			clearInterval(gameLoop);
 			gameLoop = null;
 			array = [];
 			pieceN = [];
@@ -227,14 +246,18 @@
 		function next() {
 			if(gameState === true) {
 				var ld = emptyBehind();
+				console.log(framerate);
 				if (ld) { 
-					pieceN[1] = pieceN[1]+ 1;
+					pieceN[1] = pieceN[1] + 1;
 					
 					//Call move function 
 					var movement = mvtUsr;
+					var incrementation = 2;//incremMvt;
 					// var movement = Math.floor(Math.random()*2)*2-1;
-					if (emptySide(movement)) {
-						pieceN[0] = pieceN[0] + movement;
+					for(var a = 1; a < incrementation + 1; a++){
+						if (emptySide(movement)) {
+							pieceN[0] = pieceN[0] + movement;
+						}
 					}
 				} else {
 					array.push(pieceN[0]); // horizontaly
@@ -259,16 +282,23 @@
 			}
 			drawArray();
 			if(gameState === true && gameLoop === null) {
-				gameLoop = setInterval(next,80); // High framerate for bot
+				gameLoop = setInterval(next, framerate);
 				
 			}
 		}
 		
 		function newPiece() {
+			// Reset the faster time			
+			clearInterval(gameLoop);
+			gameLoop = setInterval(next, framerateInit);
+			framerate = framerateInit;
+			fasterTime = false;
+
+			// Generate a new piece and push to array
 			pieceN=[];
 			pieceN.push(Math.floor(nbcases/2));
 			pieceN.push(0);
-			pieceN.push(Math.floor(Math.random()*19));
+			pieceN.push(Math.floor(Math.random()*19)); // random new piece
 		}
 		
 		
@@ -305,24 +335,35 @@
 			init();
 			// Scan all precedents pieces and replace them
 			nbpieces = array.length/3;
+			var test = 0;
 			for (var i = 0 ; i <  nbpieces ; i++ ) {
-				drawPiece(array[3*i],array[3*i+1],array[3*i+2]);
+				// Permit to change color of each piece TODO after refactor of pieces
+				/*if(test == 0) {
+					var color ="rgb(100,255,100,255)";
+					test++;
+				}
+				else {
+					var color = "rgb(255,100,255,255)";
+					test--;
+				}*/
+				drawPiece(array[3*i],array[3*i+1],array[3*i+2], "rgb(100,255,100,255)");
 			}
-			context.fillStyle = "rgba(255, 255, 0, 255)";
+			context.fillStyle = "rgba(255, 255, 0, 255)"; // couleur nouvelle piece
 			// Place the new Piece
 			drawPiece(pieceN[0],pieceN[1],pieceN[2]);
 		}
 		
-		function drawPiece(x, y, nopiece) {
+		function drawPiece(x, y, nopiece, color) {
 			for (var i = 0; i < 16; i++) {
 				if (pieces[nopiece*16 + i] == 1) {
+					context.fillStyle = color;
 					context.fillRect ( sizePix*(x+(i%4)) , sizePix*(y+Math.floor(i/4)) , sizePix, sizePix );
 				}
 			}
 		}
 		
 		function emptyCase(x, y) {
-			result=true;
+			result = true;
 			for (var i = 0 ; i < nbpieces ; i++) {
 				for (var j = 0 ; j < 16 ; j++) {
 					if ((array[3*i] + j%4 == x)&&(array[3*i+1] + Math.floor(j/4) == y)&&(pieces[array[3*i+2]*16 + j] == 1)) {
@@ -337,7 +378,6 @@
 			for (var i = 0 ; i < 16 ; i++) {
 				if (pieces[pieceN[2]*16 + i] == 1) {
 					if (!(emptyCase(pieceN[0] + i%4, pieceN[1] + Math.floor(i/4)+1))) {
-					 //alert(i);
 					 return false;
 					}
 				}
@@ -349,12 +389,11 @@
 			for (var i = 0 ; i < 16 ; i++) {
 				if (pieces[pieceN[2]*16 + i] == 1) {
 					if (!(emptyCase(pieceN[0] + i%4 + saucisson,pieceN[1] + Math.floor(i/4)))) {
-					 //alert(i);
-					 return false;
+						return false;
 					}
 				}
 			}
-			return true;
+			return true;	
 		}
 		
 		function sort(a, b) {
@@ -368,10 +407,8 @@
 		function scoreboardUpdate(query, nom, tabTemp, isJSON) {
 			if(!isJSON)
 				tabTemp = tabTemp.sort(sort).reverse();
-			else {
+			else
 				tabTemp = tabTemp.scoreTab.sort(sortJSON).reverse();
-				//console.log(tabTemp[0].score);
-			 }
 				
 			var strgTemp = '<table class="table"<thead> <tr> <th scope="col">#</th> <th scope="col">' + nom + '</th></tr></thead><tbody>';
 			
