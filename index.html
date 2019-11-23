@@ -33,8 +33,15 @@
         <div class="container">
 			<div class="row">
 				<div class="col-8 text-center">
-					<div id="titleAffichage" class="btn-secondary btn">
-						<h1> Solo </h1>
+					<div class="row justify-content-center">
+						<div id="titleAffichage" class=" btn-secondary btn">
+							<h1> Solo </h1>
+						</div>
+						<div id="prevision" class="pl-5 pb-0">
+							<canvas id="canvasPre" width="70" height="65">
+								<p>Désolé, votre navigateur ne supporte pas Canvas.</p>
+							</canvas>
+						</div>
 					</div>
 					<div id="affichage">
 						<canvas id="canvas" width="485" height="500" class="pt-3">
@@ -160,6 +167,9 @@
 		
 		var canvas  = document.querySelector('#canvas');
 		var context = canvas.getContext('2d');
+		var canvasPre  = document.querySelector('#canvasPre');
+		var contextPre = canvasPre.getContext('2d');
+		
 		var Xcan = 520;
 		var Ycan = 520;
 		var sizePix = 18; // define size of pieces in the canvas
@@ -220,6 +230,8 @@
 			});
 		} catch(err) {console.log(err);}
 		
+		initPre();
+		
 		scoreUpdate();
 		limit();
 		init();
@@ -246,13 +258,13 @@
 		function next() {
 			if(gameState === true) {
 				var ld = emptyBehind();
-				console.log(framerate);
 				if (ld) { 
 					pieceN[1] = pieceN[1] + 1;
 					
 					//Call move function 
 					var movement = mvtUsr;
-					var incrementation = 2;//incremMvt;
+					var incrementation = 1;//incremMvt;
+					
 					// var movement = Math.floor(Math.random()*2)*2-1;
 					for(var a = 1; a < incrementation + 1; a++){
 						if (emptySide(movement)) {
@@ -330,6 +342,14 @@
 				context.fill();
 				context.fillStyle = "rgba(100, 255, 100, 255)";
 			}
+		
+		function initPre() {
+			contextPre.clearRect(0, 0, canvasPre.width, canvasPre.height);
+			contextPre.beginPath(); // Permit to prevent a memory leak		
+			contextPre.fillStyle = "rgba(0, 0, 0, 255)";
+			contextPre.rect( 0 , 0 , canvasPre.width, canvasPre.height );
+			contextPre.fill();
+		}
 		
 		function drawArray() {
 			init();
